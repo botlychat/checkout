@@ -1,26 +1,30 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// pages/api/checkout.js
+
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  // ✅ Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Replace * with your domain for security
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end(); // CORS preflight support
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { amount } = req.body;
-
-  if (!amount || typeof amount !== 'number' || amount < 50) {
-    return res.status(400).json({ error: 'Invalid amount. Must be a number >= 50 cents.' });
-  }
-
   try {
+    const { amount } = req.body;
+
+    // Validate amount
+    if (!amount || typeof amount !== 'number') {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -29,20 +33,21 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Custom Payment',
+              name: 'Custom Payment 💰',
+              description: 'This is a test charge using Stripe Checkout with a custom description.',
             },
             unit_amount: amount,
           },
           quantity: 1,
         },
       ],
-      success_url: 'https://your-domain.com/success',
-      cancel_url: 'https://your-domain.com/cancel',
+      success_url: `${req.headers.origin}/success`,
+      cancel_url: `${req.headers.origin}/cancel`,
     });
 
-    return res.status(200).json({ url: session.url });
+    res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Stripe Error:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Stripe Checkout Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
