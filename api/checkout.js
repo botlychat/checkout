@@ -1,23 +1,26 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  // ✅ Add CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Or use your domain instead of '*'
+  // ✅ Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Replace * with your domain for security
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // ✅ Handle preflight requests
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).end(); // CORS preflight support
   }
 
-  // ✅ Reject other non-POST methods
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { amount } = req.body;
+
+  if (!amount || typeof amount !== 'number' || amount < 50) {
+    return res.status(400).json({ error: 'Invalid amount. Must be a number >= 50 cents.' });
+  }
+
   try {
-    // ✅ Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -26,9 +29,9 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Sample Product',
+              name: 'Custom Payment',
             },
-            unit_amount: 5000, // $50.00
+            unit_amount: amount,
           },
           quantity: 1,
         },
@@ -37,10 +40,9 @@ export default async function handler(req, res) {
       cancel_url: 'https://your-domain.com/cancel',
     });
 
-    // ✅ Return session URL
     return res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Stripe error:', err);
+    console.error('Stripe Error:', err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
