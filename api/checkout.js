@@ -1,3 +1,18 @@
+export default async function handler(req, res) {
+  // ✅ Allow all origins for testing (or set your domain)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -38,4 +53,5 @@ export default async function handler(req, res) {
     console.error('Stripe error:', error);
     res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
+}
 }
