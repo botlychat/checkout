@@ -1,12 +1,9 @@
-// pages/api/checkout.js
-
 import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -18,11 +15,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount } = req.body;
+    const { amount, name, description } = req.body;
 
-    // Validate amount
     if (!amount || typeof amount !== 'number') {
       return res.status(400).json({ error: 'Invalid amount' });
+    }
+    if (!name || !description) {
+      return res.status(400).json({ error: 'Missing name or description' });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -31,10 +30,10 @@ export default async function handler(req, res) {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'brl',
             product_data: {
-              name: 'Custom Payment 💰',
-              description: 'This is a test charge using Stripe Checkout with a custom description.',
+              name,
+              description,
             },
             unit_amount: amount,
           },
@@ -47,7 +46,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Stripe Checkout Error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
