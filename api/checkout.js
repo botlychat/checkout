@@ -1,4 +1,6 @@
+// /api/checkout.js
 import Stripe from 'stripe';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
@@ -14,16 +16,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { itemName, itemDescription, amount, email, phone, studentName, productId, SPF_number } = req.body;
+
   try {
-    const { amount, name, description } = req.body;
-
-    if (!amount || typeof amount !== 'number') {
-      return res.status(400).json({ error: 'Invalid amount' });
-    }
-    if (!name || !description) {
-      return res.status(400).json({ error: 'Missing name or description' });
-    }
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -32,21 +27,21 @@ export default async function handler(req, res) {
           price_data: {
             currency: 'brl',
             product_data: {
-              name,
-              description,
+              name: itemName,
+              description: itemDescription,
             },
-            unit_amount: amount,
+            unit_amount: parseInt(amount),
           },
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.origin}/success`,
-      cancel_url: `${req.headers.origin}/cancel`,
+      success_url: `https://draft-416890.sendpulse.website/?success=true&email=${email}&phone=${phone}&product_name=${encodeURIComponent(itemName)}&product_price=${amount}&product_id=${productId}&order_date=${new Date().toISOString().slice(0, 10)}&studant_name=${encodeURIComponent(studentName)}&SPF_number=${SPF_number}`,
+      cancel_url: 'https://draft-416890.sendpulse.website/',
     });
 
-    res.status(200).json({ url: session.url });
+    return res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Stripe error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
