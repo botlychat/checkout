@@ -48,20 +48,6 @@ export default async function handler(req, res) {
       }
     });
 
-    // Send data to SendPulse after creating session
-    try {
-      await fetch('https://events.sendpulse.com/events/id/e43827f8c49e4932f86af5c63cd81aec/9129528', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(studentData)
-      });
-    } catch (sendPulseError) {
-      console.error('SendPulse error:', sendPulseError);
-      // Continue with checkout even if SendPulse fails
-    }
-
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error('Stripe error:', err);
