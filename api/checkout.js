@@ -34,8 +34,8 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `https://yourdomain.com/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: 'https://yourdomain.com/cancel',
+      success_url: `https://draft-416890.sendpulse.website/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: 'https://www.institutomenteaprendiz.com.br/',
       metadata: {
         studentEmail: studentData.email,
         studentPhone: studentData.phone,
