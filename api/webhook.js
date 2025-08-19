@@ -71,6 +71,48 @@ export default async function handler(req, res) {
     } catch (sendPulseError) {
       console.error('SendPulse error:', sendPulseError);
     }
+
+    // Create user account for Sistema MenteAprendiz courses
+    if (metadata.modalidade === 'Sistema MenteAprendiz') {
+      try {
+        console.log('Creating user account for Sistema MenteAprendiz course...');
+        console.log('User data:', {
+          name: metadata.studentName,
+          email: metadata.studentEmail,
+          tier: 'MENSAL',
+          status: 'PAGO'
+        });
+        
+        const userResponse = await fetch('https://api.institutementeaprendiz.com/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': '32148f57801bef2dd06e998557a11dd50e11d9fea10483a082c991cfa011e9a2a84b3a02cbf7a24267d677a25390d087584419ddd8fecdbc4a5838afa2f3d12a'
+          },
+          body: JSON.stringify({
+            name: metadata.studentName,
+            email: metadata.studentEmail,
+            tier: 'MENSAL',
+            status: 'PAGO'
+          })
+        });
+
+        if (userResponse.ok) {
+          const responseData = await userResponse.json();
+          console.log('User account API request sent successfully');
+          console.log('Response status:', userResponse.status);
+          console.log('Response data:', responseData);
+        } else {
+          const errorData = await userResponse.json();
+          console.error('User account API request failed:', userResponse.status, userResponse.statusText);
+          console.error('Error response:', errorData);
+        }
+      } catch (userError) {
+        console.error('User account creation error:', userError);
+      }
+    } else {
+      console.log('Course modalidade is not Sistema MenteAprendiz, skipping user account creation');
+    }
   }
 
   res.json({ received: true });
