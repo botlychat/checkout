@@ -15,6 +15,31 @@ const getRawBody = (req) => {
   });
 };
 
+// Helper function to generate random password
+const generateRandomPassword = (length = 12) => {
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  
+  const allChars = lowercase + uppercase + numbers + symbols;
+  let password = '';
+  
+  // Ensure at least one character from each category
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += symbols[Math.floor(Math.random() * symbols.length)];
+  
+  // Fill the rest randomly
+  for (let i = 4; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Shuffle the password to randomize the order
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -76,11 +101,24 @@ export default async function handler(req, res) {
     if (metadata.modalidade === 'Sistema MenteAprendiz') {
       try {
         console.log('Creating user account for Sistema MenteAprendiz course...');
+        
+        // Generate random password
+        const randomPassword = generateRandomPassword(12);
+        
+        const userData = {
+          name: metadata.studentName,
+          email: metadata.studentEmail,
+          tier: 'MENSAL',
+          status: 'PAGO',
+          password: randomPassword
+        };
+        
         console.log('User data:', {
           name: metadata.studentName,
           email: metadata.studentEmail,
           tier: 'MENSAL',
-          status: 'PAGO'
+          status: 'PAGO',
+          password: '*'.repeat(randomPassword.length) // Hide password in logs
         });
         
         const userResponse = await fetch('https://api.institutomenteaprendiz.com/auth/signUp', {
@@ -89,12 +127,7 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer 32148f57801bef2dd06e998557a11dd50e11d9fea10483a082c991cfa011e9a2a84b3a02cbf7a24267d677a25390d087584419ddd8fecdbc4a5838afa2f3d12a'
           },
-          body: JSON.stringify({
-            name: metadata.studentName,
-            email: metadata.studentEmail,
-            tier: 'MENSAL',
-            status: 'PAGO'
-          })
+          body: JSON.stringify(userData)
         });
 
         if (userResponse.ok) {
@@ -102,6 +135,7 @@ export default async function handler(req, res) {
           console.log('User account API request sent successfully');
           console.log('Response status:', userResponse.status);
           console.log('Response data:', responseData);
+          console.log('Generated password for user:', metadata.studentEmail, '- Password:', randomPassword);
         } else {
           const errorData = await userResponse.json();
           console.error('User account API request failed:', userResponse.status, userResponse.statusText);
