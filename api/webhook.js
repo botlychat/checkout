@@ -49,7 +49,8 @@ export default async function handler(req, res) {
       product_price: metadata.productPrice,
       order_date: metadata.orderDate,
       studant_name: metadata.studentName,
-      SPF_number: metadata.spfNumber
+      SPF_number: metadata.spfNumber,
+      modalidade: metadata.modalidade // Include course category
     };
 
     // Send data to SendPulse only after successful payment
