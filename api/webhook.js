@@ -125,7 +125,7 @@ export default async function handler(req, res) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer 32148f57801bef2dd06e998557a11dd50e11d9fea10483a082c991cfa011e9a2a84b3a02cbf7a24267d677a25390d087584419ddd8fecdbc4a5838afa2f3d12a'
+            'x-api-key': '32148f57801bef2dd06e998557a11dd50e11d9fea10483a082c991cfa011e9a2a84b3a02cbf7a24267d677a25390d087584419ddd8fecdbc4a5838afa2f3d12a'
           },
           body: JSON.stringify(userData)
         });
