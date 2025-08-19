@@ -16,11 +16,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Determine success URL based on course category
-    let successUrl = `https://draft-416890.sendpulse.website/success?session_id={CHECKOUT_SESSION_ID}`;
-    if (studentData.modalidade === "Sistema MenteAprendiz") {
-      successUrl = `https://checkout-blue.vercel.app/api/welcome.html?session_id={CHECKOUT_SESSION_ID}`;
-    }
+    // Use the same success URL for all courses (updated to use new success page)
+    const successUrl = `https://institutomenteaprendiz.com.br/success?session_id={CHECKOUT_SESSION_ID}`;
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
