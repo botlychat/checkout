@@ -16,8 +16,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Use the same success URL for all courses (updated to use new success page)
-    const successUrl = `https://institutomenteaprendiz.com.br/success?session_id={CHECKOUT_SESSION_ID}`;
+    // Determine success URL based on course category
+    let successUrl = `https://institutomenteaprendiz.com.br/success?session_id={CHECKOUT_SESSION_ID}`;
+    if (studentData.modalidade === 'Sistema MenteAprendiz') {
+      successUrl = `https://institutomenteaprendiz.com.br/successsistema?session_id={CHECKOUT_SESSION_ID}`;
+    }
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
