@@ -16,6 +16,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Determine success URL based on course category
+    let successUrl = `https://draft-416890.sendpulse.website/success?session_id={CHECKOUT_SESSION_ID}`;
+    if (studentData.modalidade === "Sistema MenteAprendiz") {
+      successUrl = `https://checkout-blue.vercel.app/api/welcome.html?session_id={CHECKOUT_SESSION_ID}`;
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -34,7 +40,7 @@ export default async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `https://draft-416890.sendpulse.website/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: 'https://www.institutomenteaprendiz.com.br/',
       metadata: {
         studentEmail: studentData.email,
@@ -44,7 +50,8 @@ export default async function handler(req, res) {
         productPrice: studentData.product_price,
         orderDate: studentData.order_date,
         studentName: studentData.studant_name,
-        spfNumber: studentData.SPF_number
+        spfNumber: studentData.SPF_number,
+        modalidade: studentData.modalidade // Add modalidade to metadata
       }
     });
 
